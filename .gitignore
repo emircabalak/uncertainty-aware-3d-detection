@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+
+# Sanal ortamlar
+.venv/
+venv/
+env/
+
+# Editör/IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Eğitim çıktıları
+output/
+logs/
+runs/
+*.log
+events.out.tfevents.*
+
+# Demo çıktıları
+demo_frames/
+*.mp4
+*.gif
+
+# Rapor (yerel)
+Overleaf_extracted/
+Overleaf_Rapor.zip
+
+# Notebook checkpoint
+.ipynb_checkpoints/
+
+# Pretrained büyük dosyalar (kullanıcı README üzerinden indirir)
+# Aşağıdakileri yüklemek istemiyorsan başındaki # işaretini kaldır:
+# evidential_3d_pretrained/pretrained/*.pth
+# evidential_3d_pretrained/data/kitti/training/
+# uncertainty_3d_detection/data/kitti/training/

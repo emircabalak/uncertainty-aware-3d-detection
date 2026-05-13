@@ -1,0 +1,16 @@
+torch>=1.10
+torchvision>=0.11
+numpy>=1.21
+scipy>=1.7
+scikit-learn>=1.0
+matplotlib>=3.5
+opencv-python>=4.5
+open3d>=0.15
+pyyaml>=5.4
+tqdm>=4.62
+tensorboardX>=2.5
+easydict>=1.9
+numba>=0.53
+SharedArray
+wandb
+spconv-cu118>=2.3

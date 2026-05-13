@@ -1,0 +1,150 @@
+# ============================================================
+# Evidential 3D Detector with Pretrained PointPillars Backbone
+# KITTI Configuration
+# ============================================================
+
+# --- Model ---
+model:
+  num_classes: 3                      # Car, Pedestrian, Cyclist
+  num_point_features: 4               # x, y, z, intensity
+  bbox_code_size: 7                   # x, y, z, dx, dy, dz, heading
+
+  # Detection
+  score_threshold: 0.1
+  nms_iou_threshold: 0.7
+  uncertainty_penalty: 0.3
+  max_detections: 500
+
+# --- Voxelization ---
+# Matches OpenPCDet's pointpillar_7728.pth exactly — do NOT change
+voxel:
+  voxel_size: [0.16, 0.16, 4]
+  point_cloud_range: [0, -39.68, -3, 69.12, 39.68, 1]
+  max_points_per_voxel: 32
+  max_num_voxels:
+    train: 16000
+    eval: 40000
+
+# --- Pretrained ---
+pretrained:
+  # Relative to project root. Auto-downloaded if missing.
+  checkpoint_path: "./pretrained/pointpillar_7728.pth"
+  # Verify layer name compatibility (should be True for official OpenPCDet ckpt)
+  strict_backbone_load: false
+
+# --- Data ---
+data:
+  dataset: "kitti"
+  data_path: "./data/kitti"
+  train_split: "train"
+  val_split: "val"
+  test_split: "test"
+  classes: ["Car", "Pedestrian", "Cyclist"]
+
+  augmentation:
+    random_flip:
+      enabled: true
+      probability: 0.5
+    random_rotation:
+      enabled: true
+      range: [-0.78539816, 0.78539816]
+    random_scaling:
+      enabled: true
+      range: [0.95, 1.05]
+    gt_sampling:
+      enabled: true                   # Re-enabled — backbone is strong enough
+      db_info_path: "./data/kitti/kitti_dbinfos_train.pkl"
+      sample_groups:
+        Car: 15
+        Pedestrian: 10
+        Cyclist: 10
+
+# --- Training ---
+# Two-phase fine-tuning:
+#   Phase 1 (stage1_epochs): Backbone FROZEN, head-only training with higher LR
+#                            Lets evidential head adapt to pretrained features
+#                            without damaging them.
+#   Phase 2 (stage2_epochs): Full fine-tune with low LR
+#                            Backbone gently adjusts to evidential objective.
+train:
+  batch_size: 4                       # T4 16GB: 4 is safe
+  num_workers: 4
+
+  stage1:
+    epochs: 20                        # Option C: extended head-only training
+    freeze_backbone: true
+    optimizer:
+      type: "adam"
+      lr: 0.001                       # Higher — head is from scratch
+      weight_decay: 0.01
+      betas: [0.9, 0.999]
+    scheduler:
+      type: "one_cycle"
+      max_lr: 0.001
+      pct_start: 0.1                  # Shorter warmup since more epochs
+      div_factor: 10
+      final_div_factor: 1000
+
+  stage2:
+    epochs: 0                         # Option C: disabled — frozen backbone only
+    freeze_backbone: false
+    optimizer:
+      type: "adam"
+      # Use different LRs for backbone vs head (param groups)
+      backbone_lr: 0.0001             # Gentle — don't destroy pretrained features
+      head_lr: 0.0005                 # Head still needs to adapt
+      weight_decay: 0.01
+      betas: [0.9, 0.999]
+    scheduler:
+      type: "one_cycle"
+      max_lr_backbone: 0.0001
+      max_lr_head: 0.0005
+      pct_start: 0.1
+      div_factor: 10
+      final_div_factor: 1000
+
+  # Total = stage1_epochs + stage2_epochs = 20 + 0 = 20 epochs
+
+  # Evidential loss config
+  loss:
+    heatmap_weight: 1.0
+    bbox_evidential_weight: 1.0
+    cls_dirichlet_weight: 0.25
+    max_kl_weight: 0.1
+    kl_annealing_epochs: 15           # Anneal over most of stage1
+
+  # Early stopping
+  early_stopping:
+    patience: 8
+    min_delta: 0.001
+
+  # Checkpoint
+  checkpoint:
+    save_interval: 1
+    intra_epoch_save_interval: 200
+    save_best: true
+    resume_from: null
+
+# --- Evaluation ---
+eval:
+  batch_size: 1
+  iou_thresholds:
+    Car: 0.7
+    Pedestrian: 0.5
+    Cyclist: 0.5
+  eval_metric: "kitti"
+
+  uncertainty:
+    compute_ece: true
+    compute_auroc: true
+    compute_sparsification: true
+    ece_num_bins: 15
+    sparsification_steps: 20
+
+# --- Paths ---
+paths:
+  output_dir: "./output/pretrained_kitti_evidential"
+  log_dir: "./output/pretrained_kitti_evidential/logs"
+  checkpoint_dir: "./output/pretrained_kitti_evidential/checkpoints"
+  eval_dir: "./output/pretrained_kitti_evidential/eval"
+  viz_dir: "./output/pretrained_kitti_evidential/viz"

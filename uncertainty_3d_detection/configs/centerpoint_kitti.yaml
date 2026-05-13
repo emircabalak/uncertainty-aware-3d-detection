@@ -1,0 +1,120 @@
+# ============================================================
+# CenterPoint + Evidential Uncertainty — KITTI Configuration
+# ============================================================
+
+# --- Model ---
+model:
+  num_classes: 3                      # Car, Pedestrian, Cyclist
+  num_point_features: 4               # x, y, z, intensity
+  bbox_code_size: 7                   # x, y, z, dx, dy, dz, heading
+  uncertainty_mode: "evidential"      # "evidential", "mc_dropout", "combined"
+  mc_forward_passes: 20              # T for MC Dropout inference
+  dropout_rate: 0.1                   # Dropout probability in backbone
+
+  # Detection
+  score_threshold: 0.1
+  nms_iou_threshold: 0.7
+  uncertainty_penalty: 0.3
+  max_detections: 500
+
+# --- Voxelization ---
+# PointPillars-style: large voxels, Z collapsed to single pillar
+voxel:
+  voxel_size: [0.16, 0.16, 4]
+  point_cloud_range: [0, -39.68, -3, 69.12, 39.68, 1]
+  max_points_per_voxel: 32
+  max_num_voxels:
+    train: 16000
+    eval: 40000
+
+# --- Data ---
+data:
+  dataset: "kitti"
+  data_path: "./data/kitti"
+  train_split: "train"
+  val_split: "val"
+  test_split: "test"
+  classes: ["Car", "Pedestrian", "Cyclist"]
+
+  # Augmentation
+  augmentation:
+    random_flip:
+      enabled: true
+      probability: 0.5
+    random_rotation:
+      enabled: true
+      range: [-0.78539816, 0.78539816]   # [-pi/4, pi/4]
+    random_scaling:
+      enabled: true
+      range: [0.95, 1.05]
+    gt_sampling:
+      enabled: false                  # Disabled — NIG loss noise reduction
+      db_info_path: "./data/kitti/kitti_dbinfos_train.pkl"
+      sample_groups:
+        Car: 15
+        Pedestrian: 10
+        Cyclist: 10
+
+# --- Training ---
+train:
+  batch_size: 4                       # A100: 4, RTX 4050: 1-2
+  epochs: 30
+  num_workers: 4
+
+  optimizer:
+    type: "adam"
+    lr: 0.0005                        # Lowered from 0.003 — divergence at BS=4
+    weight_decay: 0.01
+    betas: [0.9, 0.999]
+
+  scheduler:
+    type: "one_cycle"
+    max_lr: 0.0005                    # Lowered from 0.003 (scale with BS=4)
+    pct_start: 0.1                    # 10% warmup (was 40% — wasted epochs)
+    div_factor: 10
+    final_div_factor: 1000
+
+  # Evidential loss config
+  loss:
+    heatmap_weight: 1.0
+    bbox_evidential_weight: 1.0       # Lowered from 2.0 — NIG gradient noise
+    cls_dirichlet_weight: 0.25        # Lowered from 0.5
+    max_kl_weight: 0.1
+    kl_annealing_epochs: 40          # Anneal KL from 0 to max over 40 epochs
+
+  # Early stopping
+  early_stopping:
+    patience: 8                       # Give OneCycle time to find best LR
+    min_delta: 0.001                  # Minimum change to count as improvement
+
+  # Checkpoint
+  checkpoint:
+    save_interval: 1                  # Save every epoch
+    intra_epoch_save_interval: 200    # Save latest.pth every N steps within epoch
+    save_best: true                   # Also save best val mAP
+    resume_from: null                 # Path to checkpoint for resume
+
+# --- Evaluation ---
+eval:
+  batch_size: 1
+  iou_thresholds:
+    Car: 0.7
+    Pedestrian: 0.5
+    Cyclist: 0.5
+  eval_metric: "kitti"               # KITTI official evaluation
+
+  # Uncertainty evaluation
+  uncertainty:
+    compute_ece: true
+    compute_auroc: true
+    compute_sparsification: true
+    ece_num_bins: 15
+    sparsification_steps: 20
+
+# --- Paths ---
+paths:
+  output_dir: "./output/centerpoint_kitti_evidential"
+  log_dir: "./output/centerpoint_kitti_evidential/logs"
+  checkpoint_dir: "./output/centerpoint_kitti_evidential/checkpoints"
+  eval_dir: "./output/centerpoint_kitti_evidential/eval"
+  viz_dir: "./output/centerpoint_kitti_evidential/viz"
