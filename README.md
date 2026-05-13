@@ -171,7 +171,9 @@ imageio[ffmpeg]    # tester.py video modu için
 
 ## 5. KITTI Veri Seti (Sadece Yeniden Eğitim veya Geniş Test İçin)
 
-> **Demo için gerek yok.** Repo, val setinin ilk 20 örneğini (velodyne + label_2 + calib) hazır içerir; `tester.py` doğrudan bu örnekler üzerinde çalışır. Aşağıdaki indirme adımları **yalnızca** şu durumlar için gereklidir:
+> **Demo için gerek yok.** Repo, val setinin ilk 20 örneğini (velodyne + label_2 + calib) hazır
+> içerir; `tester.py` doğrudan bu örnekler üzerinde çalışır. Aşağıdaki indirme adımları
+> **yalnızca** şu durumlar için gereklidir:
 > - Demo'yu 20 örnekten daha geniş bir alt küme üzerinde denemek
 > - Tüm val seti üzerinde değerlendirme yapmak (`tools/evaluate.py`)
 > - Modelleri **sıfırdan yeniden eğitmek** (`tools/train.py`)
@@ -191,7 +193,7 @@ Bu durumlardan biri geçerliyse KITTI 3D Object Detection benchmark'ını resmi 
 
 İçerikleri **her iki proje klasörünün altında** aşağıdaki yapıya çıkartın:
 
-​```
+```
 <model_klasörü>/data/kitti/
 ├── ImageSets/
 │   ├── train.txt        # repo ile birlikte gelir
@@ -202,11 +204,17 @@ Bu durumlardan biri geçerliyse KITTI 3D Object Detection benchmark'ını resmi 
 │   ├── calib/           # 0000000.txt, ...
 │   └── image_2/         # opsiyonel
 └── testing/             # opsiyonel
-​```
+```
 
-`ImageSets/train.txt` ve `val.txt` dosyaları KITTI'nin standart 3712/3769 ayrımına karşılık gelir (Chen et al., 2017) ve repo içinde hazır gelir.
+`ImageSets/train.txt` ve `val.txt` dosyaları KITTI'nin standart 3712/3769 ayrımına karşılık
+gelir (Chen et al., 2017) ve repo içinde hazır gelir.
 
-> **Not:** Aynı veri seti **iki defa** yerleştirilmelidir — `evidential_3d_pretrained/data/kitti/` ve `uncertainty_3d_detection/data/kitti/` altına. Disk yerinden tasarruf etmek için sembolik link kullanabilirsiniz (Linux/WSL: `ln -s`; Windows: `mklink /D`). İndirilen dosyalar mevcut 20 örneğin üzerine yazılır, sorun değildir.
+> **Not:** Aynı veri seti **iki defa** yerleştirilmelidir — `evidential_3d_pretrained/data/kitti/`
+> ve `uncertainty_3d_detection/data/kitti/` altına. Disk yerinden tasarruf etmek için sembolik
+> link kullanabilirsiniz (Linux/WSL: `ln -s`; Windows: `mklink /D`). İndirilen dosyalar mevcut
+> 20 örneğin üzerine yazılır, sorun değildir.
+
+---
 
 ## 6. Eğitilmiş Modeller
 
