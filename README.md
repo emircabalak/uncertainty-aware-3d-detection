@@ -169,9 +169,14 @@ imageio[ffmpeg]    # tester.py video modu için
 
 ---
 
-## 5. KITTI Veri Setinin İndirilmesi ve Yerleştirilmesi
+## 5. KITTI Veri Seti (Sadece Yeniden Eğitim veya Geniş Test İçin)
 
-KITTI 3D Object Detection benchmark'ı resmi siteden indirilir:
+> **Demo için gerek yok.** Repo, val setinin ilk 20 örneğini (velodyne + label_2 + calib) hazır içerir; `tester.py` doğrudan bu örnekler üzerinde çalışır. Aşağıdaki indirme adımları **yalnızca** şu durumlar için gereklidir:
+> - Demo'yu 20 örnekten daha geniş bir alt küme üzerinde denemek
+> - Tüm val seti üzerinde değerlendirme yapmak (`tools/evaluate.py`)
+> - Modelleri **sıfırdan yeniden eğitmek** (`tools/train.py`)
+
+Bu durumlardan biri geçerliyse KITTI 3D Object Detection benchmark'ını resmi siteden indirin:
 <https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d>
 (ücretsiz, e-posta ile kayıt gerekiyor).
 
@@ -186,7 +191,7 @@ KITTI 3D Object Detection benchmark'ı resmi siteden indirilir:
 
 İçerikleri **her iki proje klasörünün altında** aşağıdaki yapıya çıkartın:
 
-```
+​```
 <model_klasörü>/data/kitti/
 ├── ImageSets/
 │   ├── train.txt        # repo ile birlikte gelir
@@ -197,20 +202,11 @@ KITTI 3D Object Detection benchmark'ı resmi siteden indirilir:
 │   ├── calib/           # 0000000.txt, ...
 │   └── image_2/         # opsiyonel
 └── testing/             # opsiyonel
-```
+​```
 
-`ImageSets/train.txt` ve `val.txt` dosyaları KITTI'nin standart 3712/3769 ayrımına karşılık
-gelir (Chen et al., 2017) ve repo içinde hazır gelir.
+`ImageSets/train.txt` ve `val.txt` dosyaları KITTI'nin standart 3712/3769 ayrımına karşılık gelir (Chen et al., 2017) ve repo içinde hazır gelir.
 
-> **Önemli:** Aynı veri seti **iki defa** kopyalanmalıdır — `evidential_3d_pretrained/data/kitti/`
-> ve `uncertainty_3d_detection/data/kitti/` altına. İki klasör arasında sembolik link de
-> kullanabilirsiniz (Linux/WSL: `ln -s`; Windows: `mklink /D`).
->
-> **Hızlı deneme:** Yalnızca demo (`tester.py`) çalıştıracaksanız tüm KITTI yerine yalnızca
-> `velodyne/` + `label_2/` + `calib/` klasörlerini ve val.txt'in ilk 20 satırındaki örnekleri
-> indirmeniz yeterlidir (~10 MB).
-
----
+> **Not:** Aynı veri seti **iki defa** yerleştirilmelidir — `evidential_3d_pretrained/data/kitti/` ve `uncertainty_3d_detection/data/kitti/` altına. Disk yerinden tasarruf etmek için sembolik link kullanabilirsiniz (Linux/WSL: `ln -s`; Windows: `mklink /D`). İndirilen dosyalar mevcut 20 örneğin üzerine yazılır, sorun değildir.
 
 ## 6. Eğitilmiş Modeller
 
